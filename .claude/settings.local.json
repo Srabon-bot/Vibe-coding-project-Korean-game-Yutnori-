@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const s = require\\('./.claude/settings.json'\\); console.log\\(JSON.stringify\\(s\\)\\)\")",
+      "Bash(npx vitest *)"
+    ]
+  }
+}
