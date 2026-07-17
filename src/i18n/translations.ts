@@ -52,7 +52,16 @@ const en: Record<string, string> = {
   'tutorial.card4.title': 'Shortcuts through the center',
   'tutorial.card4.body':
     'Land exactly on a junction or the center to unlock a shortcut on your next move. Check the on-board preview and pick the better route.',
+  'tutorial.card5.title': 'A living cosmos',
+  'tutorial.card5.body':
+    "The board's 29 points represent the 28 constellations circling the North Star at the center. The sticks' flat and round sides are yin and yang, and pieces travel counterclockwise — just like the Big Dipper wheeling around the pole star.",
   'tutorial.play': "Let's play!",
+
+  'animal.do': 'Pig',
+  'animal.gae': 'Dog',
+  'animal.geol': 'Sheep',
+  'animal.yut': 'Cow',
+  'animal.mo': 'Horse',
 
   'kind.do': 'Do',
   'kind.gae': 'Gae',
@@ -172,7 +181,16 @@ const ko: Record<string, string> = {
   'tutorial.card4.title': '중앙을 통과하는 지름길',
   'tutorial.card4.body':
     '갈림길이나 중앙에 정확히 도착하면 다음 이동에서 지름길을 사용할 수 있습니다. 보드 위 미리보기를 확인하고 더 나은 경로를 선택하세요.',
+  'tutorial.card5.title': '살아있는 우주',
+  'tutorial.card5.body':
+    '말판의 29개의 자리는 중앙의 북극성을 도는 28개의 별자리를 나타냅니다. 윷가락의 평평한 면과 둥근 면은 각각 음과 양을 상징하며, 말은 북두칠성이 북극성을 도는 방향처럼 시계 반대 방향으로 이동합니다.',
   'tutorial.play': '게임 시작!',
+
+  'animal.do': '돼지',
+  'animal.gae': '개',
+  'animal.geol': '양',
+  'animal.yut': '소',
+  'animal.mo': '말',
 
   'kind.do': '도',
   'kind.gae': '개',
@@ -292,7 +310,16 @@ const bn: Record<string, string> = {
   'tutorial.card4.title': 'কেন্দ্রের মধ্য দিয়ে শর্টকাট',
   'tutorial.card4.body':
     'কোনো মোড় বা কেন্দ্রে সঠিকভাবে পৌঁছালে পরের চালে শর্টকাট খুলে যাবে। বোর্ডের প্রিভিউ দেখে ভালো পথটি বেছে নিন।',
+  'tutorial.card5.title': 'একটি জীবন্ত মহাবিশ্ব',
+  'tutorial.card5.body':
+    'বোর্ডের ২৯টি বিন্দু কেন্দ্রের ধ্রুবতারাকে ঘিরে থাকা ২৮টি নক্ষত্রমণ্ডলকে নির্দেশ করে। কাঠির চ্যাপ্টা ও গোল দিক যথাক্রমে ইয়িন ও ইয়াং প্রতিনিধিত্ব করে, আর ঘুঁটিগুলো সপ্তর্ষিমণ্ডল ধ্রুবতারাকে যেভাবে ঘোরে, সেভাবেই ঘড়ির কাঁটার বিপরীত দিকে চলে।',
   'tutorial.play': 'চলো খেলি!',
+
+  'animal.do': 'শূকর',
+  'animal.gae': 'কুকুর',
+  'animal.geol': 'ভেড়া',
+  'animal.yut': 'গরু',
+  'animal.mo': 'ঘোড়া',
 
   'kind.do': 'দো',
   'kind.gae': 'গে',

@@ -36,6 +36,19 @@ body {
   backdrop-filter: blur(6px);
 }
 
+/* Frosted-glass variant of .panel — a blurred, translucent card (the board shows through)
+   rather than a solid dark one. Used where legibility needs a boost but the board itself
+   shouldn't be obscured, e.g. the center throw-result callout. */
+.glass-panel {
+  background: rgba(27, 20, 15, 0.32);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  color: var(--color-paper);
+}
+
 .panel-title {
   font-family: var(--font-display);
   letter-spacing: 0.02em;

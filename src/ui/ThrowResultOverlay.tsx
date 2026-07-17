@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useT } from '../i18n/useT';
 import { useGameStore } from '../store/gameStore';
-import { kindDistance, kindLabel } from './format';
+import { kindAnimal, kindDistance, kindIcon, kindLabel } from './format';
 import { STICK_SETTLE_MS } from './timing';
 
 const VISIBLE_MS = 1800;
@@ -15,7 +15,7 @@ const FADE_MS = 500;
 export function ThrowResultOverlay() {
   const lastEvents = useGameStore((s) => s.lastEvents);
   const [visible, setVisible] = useState(false);
-  const [display, setDisplay] = useState<{ kind: string; distanceText: string } | null>(null);
+  const [display, setDisplay] = useState<{ icon: string; kind: string; animal: string; distanceText: string } | null>(null);
   const t = useT();
 
   useEffect(() => {
@@ -23,7 +23,12 @@ export function ThrowResultOverlay() {
     if (!throwEvent || throwEvent.type !== 'throw') return;
 
     const showTimer = setTimeout(() => {
-      setDisplay({ kind: kindLabel(t, throwEvent.result.kind), distanceText: kindDistance(t, throwEvent.result.kind) });
+      setDisplay({
+        icon: kindIcon(throwEvent.result.kind),
+        kind: kindLabel(t, throwEvent.result.kind),
+        animal: kindAnimal(t, throwEvent.result.kind),
+        distanceText: kindDistance(t, throwEvent.result.kind),
+      });
       setVisible(true);
     }, STICK_SETTLE_MS);
     const hideTimer = setTimeout(() => setVisible(false), STICK_SETTLE_MS + VISIBLE_MS);
@@ -46,28 +51,35 @@ export function ThrowResultOverlay() {
         top: '54%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        textAlign: 'center',
         pointerEvents: 'none',
         opacity: visible ? 1 : 0,
         transition: `opacity ${FADE_MS}ms ease`,
       }}
     >
-      <div
-        style={{
-          fontSize: '0.8rem',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          opacity: 0.7,
-          color: 'var(--color-paper)',
-        }}
-      >
-        {t('throwOverlay.result')}
-      </div>
-      <div className="panel-title" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.4rem)', margin: '2px 0', textShadow: '0 4px 24px rgba(0,0,0,0.65)' }}>
-        {display.kind}
-      </div>
-      <div style={{ fontSize: '1rem', color: 'var(--color-paper)', opacity: 0.85, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
-        {display.distanceText}
+      <div className="glass-panel" style={{ padding: '16px 40px', textAlign: 'center' }}>
+        <div
+          style={{
+            fontSize: '0.8rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            opacity: 0.8,
+            color: 'var(--color-paper)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+          }}
+        >
+          {t('throwOverlay.result')}
+        </div>
+        <div
+          className="panel-title"
+          style={{ fontSize: 'clamp(2.2rem, 6vw, 3.4rem)', margin: '2px 0', textShadow: '0 4px 18px rgba(0,0,0,0.55)' }}
+        >
+          {display.icon && <span aria-hidden="true">{display.icon} </span>}
+          {display.kind}
+        </div>
+        <div style={{ fontSize: '1rem', color: 'var(--color-paper)', opacity: 0.9, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+          {display.animal && `${display.animal} · `}
+          {display.distanceText}
+        </div>
       </div>
     </div>
   );

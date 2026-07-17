@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { playSound } from '../audio/sounds';
 import { useT } from '../i18n/useT';
-import { kindDistance, kindLabel } from './format';
+import { kindAnimal, kindDistance, kindIcon, kindLabel } from './format';
 import type { ThrowKind } from '../engine/types';
 
 interface TutorialModalProps {
@@ -29,7 +29,13 @@ function ThrowKindGrid() {
             border: '1px solid rgba(244,227,193,0.15)',
           }}
         >
-          <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{kindLabel(t, kind)}</span>
+          <span style={{ fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+            {kindIcon(kind) && <span aria-hidden="true">{kindIcon(kind)}</span>}
+            {kindLabel(t, kind)}
+            {kindAnimal(t, kind) && (
+              <span style={{ fontWeight: 400, opacity: 0.65, fontSize: '0.72rem' }}>({kindAnimal(t, kind)})</span>
+            )}
+          </span>
           <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>{kindDistance(t, kind)}</span>
         </div>
       ))}
@@ -52,6 +58,7 @@ export function TutorialModal({ open, onClose }: TutorialModalProps) {
     { no: '02', title: t('tutorial.card2.title'), body: '' },
     { no: '03', title: t('tutorial.card3.title'), body: t('tutorial.card3.body') },
     { no: '04', title: t('tutorial.card4.title'), body: t('tutorial.card4.body') },
+    { no: '05', title: t('tutorial.card5.title'), body: t('tutorial.card5.body') },
   ];
 
   function handleClose() {

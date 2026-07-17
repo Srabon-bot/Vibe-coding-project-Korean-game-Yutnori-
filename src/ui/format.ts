@@ -10,6 +10,25 @@ export function kindDistance(t: TFunc, kind: ThrowKind): string {
   return t(`distance.${kind}`);
 }
 
+/** Traditionally each of the 5 throw results (not Back-do, a later house-rule addition) is named
+ * for an animal, in increasing order of speed — Do the pig is slowest, Mo the horse fastest. */
+const KIND_ANIMAL_ICON: Partial<Record<ThrowKind, string>> = {
+  do: '🐷',
+  gae: '🐶',
+  geol: '🐑',
+  yut: '🐮',
+  mo: '🐴',
+};
+
+export function kindIcon(kind: ThrowKind): string {
+  return KIND_ANIMAL_ICON[kind] ?? '';
+}
+
+export function kindAnimal(t: TFunc, kind: ThrowKind): string {
+  if (kind === 'backdo') return '';
+  return t(`animal.${kind}`);
+}
+
 /** Plain-language description of where a piece currently sits, for the move-choice list. */
 export function describePiecePosition(t: TFunc, node: BoardNodeId | null): string {
   if (node === null) return t('position.start');
