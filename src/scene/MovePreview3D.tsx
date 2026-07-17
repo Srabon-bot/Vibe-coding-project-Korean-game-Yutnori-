@@ -1,8 +1,9 @@
 import { Html, Line } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { BoardNodeId } from '../engine/types';
+import { useT } from '../i18n/useT';
 import { useGameStore } from '../store/gameStore';
-import { KIND_LABEL } from '../ui/format';
+import { kindLabel } from '../ui/format';
 import { previewAssignment, previewBranchOption, type MovePreview } from '../ui/movePreview';
 import { getFinishSlotPosition, getNodePosition, getWaitingSlotPosition, type Vec3 } from './boardLayout';
 
@@ -37,6 +38,7 @@ export function MovePreview3D() {
   const game = useGameStore((s) => s.game);
   const hovered = useGameStore((s) => s.hoveredAssignment);
   const hoveredBranchOption = useGameStore((s) => s.hoveredBranchOption);
+  const t = useT();
 
   const resolved = useMemo((): { preview: MovePreview; pendingResultId: string } | null => {
     if (game.phase === 'branch-choice' && game.branchContext && hoveredBranchOption) {
@@ -57,7 +59,7 @@ export function MovePreview3D() {
 
   const pending = game.pending.find((p) => p.id === pendingResultId);
   if (!pending) return null;
-  const kindLabel = KIND_LABEL[pending.result.kind];
+  const label = kindLabel(t, pending.result.kind);
 
   const sourcePos: Vec3 =
     preview.source.type === 'waiting'
@@ -68,7 +70,7 @@ export function MovePreview3D() {
     return (
       <group>
         <GlowRing position={sourcePos} color="#c9a227" />
-        <PreviewLabel position={sourcePos}>{`${kindLabel} sends it back to Start`}</PreviewLabel>
+        <PreviewLabel position={sourcePos}>{t('preview.sendsBack', { kind: label })}</PreviewLabel>
       </group>
     );
   }
@@ -88,10 +90,10 @@ export function MovePreview3D() {
   const linePoints: Vec3[] = [sourcePos, ...boardPath.map((n) => getNodePosition(n)), ...(reachesFinish ? [destPos] : [])];
 
   const labelText = reachesFinish
-    ? `${kindLabel} — finishes!`
+    ? t('preview.finishes', { kind: label })
     : preview.needsChoice
-      ? `${kindLabel} — choose a path here`
-      : `${kindLabel} lands here`;
+      ? t('preview.choosePath', { kind: label })
+      : t('preview.landsHere', { kind: label });
 
   return (
     <group>

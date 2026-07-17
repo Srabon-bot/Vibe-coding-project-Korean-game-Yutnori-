@@ -1,4 +1,7 @@
-import { KIND_DISTANCE, KIND_LABEL } from './format';
+import { useEffect } from 'react';
+import { playSound } from '../audio/sounds';
+import { useT } from '../i18n/useT';
+import { kindDistance, kindLabel } from './format';
 import type { ThrowKind } from '../engine/types';
 
 interface TutorialModalProps {
@@ -8,30 +11,8 @@ interface TutorialModalProps {
 
 const THROW_KINDS: ThrowKind[] = ['do', 'gae', 'geol', 'yut', 'mo', 'backdo'];
 
-const CARDS: { no: string; title: string; body: string }[] = [
-  {
-    no: '01',
-    title: 'Finish all 4 pieces first',
-    body: 'Throw the yut sticks and move a piece by the number shown. The first player to bring all 4 pieces across the finish wins.',
-  },
-  {
-    no: '02',
-    title: 'Yut throws',
-    body: '',
-  },
-  {
-    no: '03',
-    title: 'Stacking and capturing',
-    body: "Land on your own piece to stack up and move together. Land on an opponent's piece to send it back to Start — and you get another throw.",
-  },
-  {
-    no: '04',
-    title: 'Shortcuts through the center',
-    body: 'Land exactly on a junction or the center to unlock a shortcut on your next move. Check the on-board preview and pick the better route.',
-  },
-];
-
 function ThrowKindGrid() {
+  const t = useT();
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginTop: 8 }}>
       {THROW_KINDS.map((kind) => (
@@ -48,8 +29,8 @@ function ThrowKindGrid() {
             border: '1px solid rgba(244,227,193,0.15)',
           }}
         >
-          <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{KIND_LABEL[kind]}</span>
-          <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>{KIND_DISTANCE[kind]}</span>
+          <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{kindLabel(t, kind)}</span>
+          <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>{kindDistance(t, kind)}</span>
         </div>
       ))}
     </div>
@@ -57,21 +38,40 @@ function ThrowKindGrid() {
 }
 
 export function TutorialModal({ open, onClose }: TutorialModalProps) {
+  const t = useT();
+
+  useEffect(() => {
+    if (open) playSound('open');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
 
+  const cards = [
+    { no: '01', title: t('tutorial.card1.title'), body: t('tutorial.card1.body') },
+    { no: '02', title: t('tutorial.card2.title'), body: '' },
+    { no: '03', title: t('tutorial.card3.title'), body: t('tutorial.card3.body') },
+    { no: '04', title: t('tutorial.card4.title'), body: t('tutorial.card4.body') },
+  ];
+
+  function handleClose() {
+    playSound('close');
+    onClose();
+  }
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={handleClose}>
       <div
-        className="panel"
+        className="panel ornate-frame"
         style={{ padding: 28, maxWidth: 520, maxHeight: '85vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <p className="panel-title" style={{ fontSize: '1.4rem' }}>
-          How to play Yutnori (윷놀이)
+          {t('tutorial.title')}
         </p>
         <div className="taegeuk-divider" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {CARDS.map((card) => (
+          {cards.map((card) => (
             <div
               key={card.no}
               style={{
@@ -92,8 +92,8 @@ export function TutorialModal({ open, onClose }: TutorialModalProps) {
             </div>
           ))}
         </div>
-        <button className="btn" style={{ marginTop: 18, width: '100%' }} onClick={onClose}>
-          Let's play!
+        <button className="btn" style={{ marginTop: 18, width: '100%' }} onClick={handleClose}>
+          {t('tutorial.play')}
         </button>
       </div>
     </div>

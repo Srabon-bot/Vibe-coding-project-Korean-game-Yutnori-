@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { BranchChoiceModal } from './BranchChoiceModal';
-import { CustomizationPanel } from './CustomizationPanel';
 import { HintToast } from './HintToast';
+import { HomeScreen } from './HomeScreen';
 import { NewGameConfirmModal } from './NewGameConfirmModal';
 import { PieceAssignmentPanel } from './PieceAssignmentPanel';
 import { RulesReminder } from './RulesReminder';
@@ -16,17 +16,33 @@ import { TutorialModal } from './TutorialModal';
 import { WinModal } from './WinModal';
 
 export function GameUI() {
-  const [setupOpen, setSetupOpen] = useState(true);
+  const screen = useGameStore((s) => s.screen);
+  const setScreen = useGameStore((s) => s.setScreen);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [newGameConfirmOpen, setNewGameConfirmOpen] = useState(false);
   const phase = useGameStore((s) => s.game.phase);
 
   function requestNewGame() {
     if (phase === 'game-over') {
-      setSetupOpen(true);
+      setScreen('home');
     } else {
       setNewGameConfirmOpen(true);
     }
+  }
+
+  if (screen === 'home') {
+    return (
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <HomeScreen
+          onStart={() => {
+            setScreen('game');
+            setTutorialOpen(true);
+          }}
+          onOpenTutorial={() => setTutorialOpen(true)}
+        />
+        <TutorialModal open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
+      </div>
+    );
   }
 
   return (
@@ -93,21 +109,14 @@ export function GameUI() {
       </div>
 
       <div style={{ pointerEvents: 'auto' }}>
-        <CustomizationPanel
-          open={setupOpen}
-          onComplete={() => {
-            setSetupOpen(false);
-            setTutorialOpen(true);
-          }}
-        />
         <WinModal />
-        <TutorialModal open={!setupOpen && tutorialOpen} onClose={() => setTutorialOpen(false)} />
+        <TutorialModal open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
         <NewGameConfirmModal
           open={newGameConfirmOpen}
           onCancel={() => setNewGameConfirmOpen(false)}
           onConfirm={() => {
             setNewGameConfirmOpen(false);
-            setSetupOpen(true);
+            setScreen('home');
           }}
         />
       </div>

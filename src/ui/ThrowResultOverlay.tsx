@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useT } from '../i18n/useT';
 import { useGameStore } from '../store/gameStore';
-import { KIND_DISTANCE, KIND_LABEL } from './format';
+import { kindDistance, kindLabel } from './format';
 import { STICK_SETTLE_MS } from './timing';
 
 const VISIBLE_MS = 1800;
@@ -15,13 +16,14 @@ export function ThrowResultOverlay() {
   const lastEvents = useGameStore((s) => s.lastEvents);
   const [visible, setVisible] = useState(false);
   const [display, setDisplay] = useState<{ kind: string; distanceText: string } | null>(null);
+  const t = useT();
 
   useEffect(() => {
     const throwEvent = lastEvents.find((e) => e.type === 'throw');
     if (!throwEvent || throwEvent.type !== 'throw') return;
 
     const showTimer = setTimeout(() => {
-      setDisplay({ kind: KIND_LABEL[throwEvent.result.kind], distanceText: KIND_DISTANCE[throwEvent.result.kind] });
+      setDisplay({ kind: kindLabel(t, throwEvent.result.kind), distanceText: kindDistance(t, throwEvent.result.kind) });
       setVisible(true);
     }, STICK_SETTLE_MS);
     const hideTimer = setTimeout(() => setVisible(false), STICK_SETTLE_MS + VISIBLE_MS);
@@ -32,6 +34,7 @@ export function ThrowResultOverlay() {
       clearTimeout(hideTimer);
       clearTimeout(clearTimer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvents]);
 
   if (!display) return null;
@@ -58,7 +61,7 @@ export function ThrowResultOverlay() {
           color: 'var(--color-paper)',
         }}
       >
-        Throw result
+        {t('throwOverlay.result')}
       </div>
       <div className="panel-title" style={{ fontSize: 'clamp(2.2rem, 6vw, 3.4rem)', margin: '2px 0', textShadow: '0 4px 24px rgba(0,0,0,0.65)' }}>
         {display.kind}

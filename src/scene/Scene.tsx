@@ -3,6 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import type { Face } from '../engine/types';
+import { useT } from '../i18n/useT';
 import { useGameStore } from '../store/gameStore';
 import { STICK_SETTLE_MS } from '../ui/timing';
 import { Board3D } from './Board3D';
@@ -41,6 +42,7 @@ function SceneContent() {
   const lastEvents = useGameStore((s) => s.lastEvents);
   const [rolling, setRolling] = useState(false);
   const [faces, setFaces] = useState<Face[] | null>(null);
+  const t = useT();
 
   useEffect(() => {
     const throwEvent = lastEvents.find((e) => e.type === 'throw');
@@ -65,7 +67,7 @@ function SceneContent() {
       <YutSticks3D faces={faces} rolling={rolling} />
       {game.phase === 'game-over' && game.winner && (
         <VictoryEffect
-          label={`${game.players.find((p) => p.id === game.winner)!.nickname} WINS!`}
+          label={t('win.banner3d', { nickname: game.players.find((p) => p.id === game.winner)!.nickname })}
           color={PLAYER_COLORS[game.winner]}
         />
       )}

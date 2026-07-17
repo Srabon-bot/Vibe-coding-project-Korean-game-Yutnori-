@@ -1,12 +1,16 @@
+import { useEffect } from 'react';
+import { playSound } from '../audio/sounds';
 import { isDiagonalArm } from '../engine/board';
 import type { BoardNodeId, NodeId } from '../engine/types';
+import { useT } from '../i18n/useT';
+import type { TFunc } from '../i18n/translations';
 import { useGameStore } from '../store/gameStore';
 import { describePiecePosition } from './format';
 
-function describeOption(opt: NodeId): string {
-  if (opt === 'finish') return 'Head straight to the finish';
-  if (isDiagonalArm(opt)) return 'Take the shortcut through the center';
-  return `Continue along the outer path (${describePiecePosition(opt)})`;
+function describeOption(t: TFunc, opt: NodeId): string {
+  if (opt === 'finish') return t('branch.optionFinish');
+  if (isDiagonalArm(opt)) return t('branch.optionShortcut');
+  return t('branch.optionOuter', { position: describePiecePosition(t, opt) });
 }
 
 export function BranchChoiceModal() {
@@ -14,16 +18,29 @@ export function BranchChoiceModal() {
   const branchContext = useGameStore((s) => s.game.branchContext);
   const chooseBranch = useGameStore((s) => s.chooseBranch);
   const setHoveredBranchOption = useGameStore((s) => s.setHoveredBranchOption);
+  const t = useT();
 
-  if (phase !== 'branch-choice' || !branchContext) return null;
+  const isOpen = phase === 'branch-choice' && !!branchContext;
+
+  useEffect(() => {
+    if (isOpen) playSound('shortcut');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  if (!isOpen || !branchContext) return null;
+
+  function handleChoose(opt: NodeId) {
+    playSound('select');
+    chooseBranch(opt as BoardNodeId);
+  }
 
   return (
     <div className="panel-accent" style={{ padding: 18, textAlign: 'center' }} onMouseLeave={() => setHoveredBranchOption(null)}>
       <p className="panel-title" style={{ fontSize: '1.05rem' }}>
-        A shortcut is available!
+        {t('branch.title')}
       </p>
       <p style={{ margin: '0 0 12px', opacity: 0.85, fontSize: '0.85rem' }}>
-        Your piece reached {describePiecePosition(branchContext.branchNode)}. Continue along the outer path, or cut through the center?
+        {t('branch.body', { position: describePiecePosition(t, branchContext.branchNode) })}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {branchContext.options.map((opt) => (
@@ -31,12 +48,12 @@ export function BranchChoiceModal() {
             key={opt}
             className="btn btn-gold"
             style={{ fontSize: '0.85rem' }}
-            onClick={() => chooseBranch(opt as BoardNodeId)}
+            onClick={() => handleChoose(opt)}
             onMouseEnter={() => setHoveredBranchOption(opt as BoardNodeId)}
             onFocus={() => setHoveredBranchOption(opt as BoardNodeId)}
             onBlur={() => setHoveredBranchOption(null)}
           >
-            {describeOption(opt)}
+            {describeOption(t, opt)}
           </button>
         ))}
       </div>
