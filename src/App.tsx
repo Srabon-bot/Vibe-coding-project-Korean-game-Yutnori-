@@ -5,7 +5,6 @@ import { useT } from './i18n/useT';
 import { Scene } from './scene/Scene';
 import { useGameStore } from './store/gameStore';
 import { GameUI } from './ui/GameUI';
-import { ThemeFrame } from './ui/ThemeFrame';
 
 function App() {
   const language = useGameStore((s) => s.language);
@@ -19,7 +18,6 @@ function App() {
   return (
     <div className="app-root" style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Scene />
-      <ThemeFrame />
       <GameUI />
       <AudioController />
       <AIController />

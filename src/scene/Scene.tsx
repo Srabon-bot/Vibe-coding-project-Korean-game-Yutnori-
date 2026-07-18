@@ -78,8 +78,9 @@ function SceneContent() {
 
 export function Scene() {
   return (
-    <Canvas shadows camera={{ position: [0, 10, 9.5], fov: 45 }}>
-      <color attach="background" args={['#1b140f']} />
+    <Canvas shadows camera={{ position: [0, 10, 9.5], fov: 45 }} gl={{ alpha: true }}>
+      {/* No opaque scene background here (deliberately) — leaves the canvas transparent so the
+          page's ornamental frame background (global.css) shows through around the board. */}
       <fog attach="fog" args={['#1b140f', 22, 46]} />
       <SceneContent />
     </Canvas>

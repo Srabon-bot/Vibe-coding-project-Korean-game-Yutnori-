@@ -240,28 +240,6 @@ body {
   }
 }
 
-/* Thin obangsaek (five-color) bands along the very top/bottom of the viewport — a persistent,
-   unobtrusive nod to traditional scroll-painting borders. Rendered once in ThemeFrame, never over
-   the board's play area, so it stays out of the 3D scene's own visuals. */
-.theme-frame-edge {
-  position: fixed;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, var(--color-red), var(--color-gold), var(--color-blue), var(--color-jade), var(--color-red));
-  opacity: 0.55;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.theme-frame-edge.top {
-  top: 0;
-}
-
-.theme-frame-edge.bottom {
-  bottom: 0;
-}
-
 /* Home screen: full-viewport scrim that keeps the board dimly visible behind the menu. */
 .home-backdrop {
   position: fixed;

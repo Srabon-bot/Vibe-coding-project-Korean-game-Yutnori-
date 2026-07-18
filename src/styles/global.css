@@ -15,4 +15,6 @@ body,
 
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Ornamental Korean frame — sits behind the (now-transparent) 3D canvas and every UI screen. */
+  background: #1b140f url('/backgrounds/korean-frame-ornament.jpg') center center / 100% 100% no-repeat fixed;
 }
