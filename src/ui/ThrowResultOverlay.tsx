@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { GameEvent } from '../engine/types';
 import { useT } from '../i18n/useT';
 import { useGameStore } from '../store/gameStore';
 import { kindAnimal, kindDistance, kindIcon, kindLabel } from './format';
@@ -17,12 +18,24 @@ export function ThrowResultOverlay() {
   const [visible, setVisible] = useState(false);
   const [display, setDisplay] = useState<{ icon: string; kind: string; animal: string; distanceText: string } | null>(null);
   const t = useT();
+  // Tracks which throw event we've already scheduled a show/hide cycle for, and the timers of
+  // that cycle. Later renders where lastEvents changes for an unrelated reason (e.g. the player
+  // assigns a move before the popup's own timers fire) must NOT cancel an in-flight cycle just
+  // because this event batch happens to contain no throw event — otherwise the popup gets stuck
+  // visible until the next throw resets everything.
+  const seenThrowRef = useRef<GameEvent | null>(null);
+  const timersRef = useRef<{ show?: ReturnType<typeof setTimeout>; hide?: ReturnType<typeof setTimeout>; clear?: ReturnType<typeof setTimeout> }>({});
 
   useEffect(() => {
     const throwEvent = lastEvents.find((e) => e.type === 'throw');
-    if (!throwEvent || throwEvent.type !== 'throw') return;
+    if (!throwEvent || throwEvent.type !== 'throw' || throwEvent === seenThrowRef.current) return;
+    seenThrowRef.current = throwEvent;
 
-    const showTimer = setTimeout(() => {
+    clearTimeout(timersRef.current.show);
+    clearTimeout(timersRef.current.hide);
+    clearTimeout(timersRef.current.clear);
+
+    timersRef.current.show = setTimeout(() => {
       setDisplay({
         icon: kindIcon(throwEvent.result.kind),
         kind: kindLabel(t, throwEvent.result.kind),
@@ -31,16 +44,19 @@ export function ThrowResultOverlay() {
       });
       setVisible(true);
     }, STICK_SETTLE_MS);
-    const hideTimer = setTimeout(() => setVisible(false), STICK_SETTLE_MS + VISIBLE_MS);
-    const clearTimer = setTimeout(() => setDisplay(null), STICK_SETTLE_MS + VISIBLE_MS + FADE_MS);
-
-    return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-      clearTimeout(clearTimer);
-    };
+    timersRef.current.hide = setTimeout(() => setVisible(false), STICK_SETTLE_MS + VISIBLE_MS);
+    timersRef.current.clear = setTimeout(() => setDisplay(null), STICK_SETTLE_MS + VISIBLE_MS + FADE_MS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastEvents]);
+  }, [lastEvents, t]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(timersRef.current.show);
+      clearTimeout(timersRef.current.hide);
+      clearTimeout(timersRef.current.clear);
+    },
+    [],
+  );
 
   if (!display) return null;
 

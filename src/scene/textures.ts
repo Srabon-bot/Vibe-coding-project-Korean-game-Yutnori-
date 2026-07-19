@@ -199,8 +199,12 @@ function paintRoundedShading(ctx: CanvasRenderingContext2D, width: number, heigh
   ctx.fillRect(0, 0, width, height);
 }
 
-/** Yut stick "flat" face: cream wood grain with 3 carved X marks, matching every stick's front (reference image). */
-export function createStickFlatFaceTexture(): THREE.CanvasTexture {
+/**
+ * Yut stick "cross" face: cream wood grain with 3 carved X marks. Per the reference rules
+ * image, this is the majority/default face (shown on 3 of the 4 for Do/Gae/Geol, all 4 for
+ * Mo) — the *other*, plain face is the one that gets counted for the throw's distance.
+ */
+export function createStickCrossMarkTexture(): THREE.CanvasTexture {
   const { canvas, ctx } = makeStickCanvas();
   ctx.fillStyle = '#f4e3c1';
   ctx.fillRect(0, 0, STICK_TEX_WIDTH, STICK_TEX_HEIGHT);
@@ -208,9 +212,9 @@ export function createStickFlatFaceTexture(): THREE.CanvasTexture {
   paintRoundedShading(ctx, STICK_TEX_WIDTH, STICK_TEX_HEIGHT);
 
   ctx.strokeStyle = 'rgba(10,8,6,0.92)';
-  ctx.lineWidth = 7;
+  ctx.lineWidth = 16;
   ctx.lineCap = 'round';
-  const r = STICK_TEX_HEIGHT * 0.24;
+  const r = STICK_TEX_HEIGHT * 0.3;
   const cy = STICK_TEX_HEIGHT / 2;
   for (const p of [0.26, 0.5, 0.74]) {
     const cx = STICK_TEX_WIDTH * p;
@@ -225,8 +229,12 @@ export function createStickFlatFaceTexture(): THREE.CanvasTexture {
   return toTexture(canvas);
 }
 
-/** Yut stick "round" (back) face for the 3 unmarked sticks: plain wood, no carving. */
-export function createStickRoundFaceTexture(): THREE.CanvasTexture {
+/**
+ * Yut stick "blank" face: plain wood, no carving. Per the reference rules image, this is the
+ * face that gets counted toward the throw's distance (1 blank up = Do, 2 = Gae, 3 = Geol, 4 =
+ * Yut; 0 blank up, i.e. all four cross-side-up, = Mo).
+ */
+export function createStickBlankFaceTexture(): THREE.CanvasTexture {
   const { canvas, ctx } = makeStickCanvas();
   ctx.fillStyle = '#e8d4a8';
   ctx.fillRect(0, 0, STICK_TEX_WIDTH, STICK_TEX_HEIGHT);
@@ -235,7 +243,11 @@ export function createStickRoundFaceTexture(): THREE.CanvasTexture {
   return toTexture(canvas);
 }
 
-/** Yut stick "round" (back) face for the one designated back-do stick: a blue return/U-turn arrow on tan. */
+/**
+ * "Blank" face for the one designated back-do stick: a blue return/U-turn arrow on tan instead
+ * of plain wood. Shown on the counted (blank) face, not the cross face — Back-do only fires
+ * when this specific stick is the lone one counted, so the mark must be visible exactly then.
+ */
 export function createStickBackdoFaceTexture(): THREE.CanvasTexture {
   const { canvas, ctx } = makeStickCanvas();
   ctx.fillStyle = '#e8c96b';

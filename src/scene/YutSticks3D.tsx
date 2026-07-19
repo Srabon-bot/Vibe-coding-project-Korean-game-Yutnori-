@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { Face } from '../engine/types';
-import { createStickBackdoFaceTexture, createStickFlatFaceTexture, createStickRoundFaceTexture } from './textures';
+import { createStickBackdoFaceTexture, createStickBlankFaceTexture, createStickCrossMarkTexture } from './textures';
 
 interface YutSticks3DProps {
   faces: Face[] | null;
@@ -11,59 +11,77 @@ interface YutSticks3DProps {
 }
 
 const STICK_EDGE_COLOR = '#d8c19a';
-const STICK_LENGTH = 1.3;
-const STICK_THICKNESS = 0.14;
-const STICK_WIDTH = 0.34;
+const STICK_LENGTH = 1.95;
+const STICK_THICKNESS = 0.21;
+const STICK_WIDTH = 0.51;
 const SETTLE_HEIGHT = STICK_THICKNESS / 2;
-const SCATTER_RADIUS = 1.85;
-// Below this center-to-center distance, two sticks visibly clip through each other at some
-// relative angle — close to STICK_LENGTH (both ends-on) without being so conservative that 4
-// sticks can't fit in the scatter radius.
-const MIN_STICK_SEPARATION = 1.15;
-const MAX_PLACEMENT_ATTEMPTS = 80;
+// Covers almost the full board (base is ~10.5 across, so half-extent ~5.25) minus half a
+// stick-length of margin so a stick lying at any angle still stays on the board.
+const SCATTER_RADIUS = 3.6;
+// Two landing spots closer than this (center-to-center) count as "the same spot" — close enough
+// that real sticks would land on top of one another rather than clipping through flat ground.
+const STACK_OVERLAP_RADIUS = 0.675;
+const STACK_GAP = 0.03;
 
 /** Tight standing bundle, used before the first throw and while the sticks are mid-toss. */
-const BUNDLE_TARGETS: [number, number][] = [-0.75, -0.25, 0.25, 0.75].map((x) => [x * 0.47, 0]);
+const BUNDLE_TARGETS: [number, number][] = [-0.75, -0.25, 0.25, 0.75].map((x) => [x * 0.675, 0]);
+const BUNDLE_HEIGHTS: number[] = BUNDLE_TARGETS.map(() => SETTLE_HEIGHT);
 
+/** Real thrown sticks can land anywhere, clustered or spread out, touching or not — no rule
+ * forces them apart or together, so this is pure unconstrained randomness across the board. */
 function randomScatterTarget(): [number, number] {
   const angle = Math.random() * Math.PI * 2;
-  const radius = 0.3 + Math.random() * SCATTER_RADIUS;
+  const radius = Math.sqrt(Math.random()) * SCATTER_RADIUS;
   return [Math.cos(angle) * radius, Math.sin(angle) * radius];
 }
 
-/** Picks `count` scatter targets that all keep at least MIN_STICK_SEPARATION apart, so the
- * sticks land visibly scattered instead of clipping through one another. Falls back to whatever
- * the last attempt was if it can't find a fully-clear spot within the attempt budget. */
 function randomScatterTargets(count: number): [number, number][] {
-  const targets: [number, number][] = [];
-  for (let i = 0; i < count; i++) {
-    let candidate = randomScatterTarget();
-    for (let attempt = 0; attempt < MAX_PLACEMENT_ATTEMPTS; attempt++) {
-      const tooClose = targets.some(([tx, tz]) => Math.hypot(candidate[0] - tx, candidate[1] - tz) < MIN_STICK_SEPARATION);
-      if (!tooClose) break;
-      candidate = randomScatterTarget();
+  return Array.from({ length: count }, randomScatterTarget);
+}
+
+/** For each target, if it lands on/near an earlier one, its resting height stacks on top of that
+ * stick instead of sinking to the same floor height and clipping through it — like a real stick
+ * landing on a pile. Processes in array order so a 3-deep pile stacks consistently. */
+function computeStackedHeights(targets: [number, number][]): number[] {
+  const heights: number[] = [];
+  for (let i = 0; i < targets.length; i++) {
+    let height = SETTLE_HEIGHT;
+    for (let j = 0; j < i; j++) {
+      const dist = Math.hypot(targets[i][0] - targets[j][0], targets[i][1] - targets[j][1]);
+      if (dist < STACK_OVERLAP_RADIUS) {
+        height = Math.max(height, heights[j] + STICK_THICKNESS + STACK_GAP);
+      }
     }
-    targets.push(candidate);
+    heights.push(height);
   }
-  return targets;
+  return heights;
 }
 
 function Stick({
   face,
   rolling,
   target,
+  settleHeight,
   topTexture,
   bottomTexture,
 }: {
   face: Face | null;
   rolling: boolean;
   target: [number, number];
+  settleHeight: number;
   topTexture: THREE.Texture;
   bottomTexture: THREE.Texture;
 }) {
   const ref = useRef<THREE.Group>(null);
   const spinSeed = useMemo(() => Math.random() * 10, []);
   const yaw = useMemo(() => Math.random() * Math.PI * 2, [target]);
+  // Per-stick randomness so a throw looks like several independent sticks tumbling rather than
+  // one synchronized animation — each one arcs, falls, and travels to its landing spot at its
+  // own slightly different rate.
+  const arcHeight = useMemo(() => 0.7 + Math.random() * 0.7, [target]);
+  const fallRate = useMemo(() => 0.85 + Math.random() * 0.5, [target]);
+  const bounceStrength = useMemo(() => 0.15 + Math.random() * 0.22, [target]);
+  const travelRate = useMemo(() => 2 + Math.random() * 2.2, [target]);
   const elapsed = useRef(0);
 
   useEffect(() => {
@@ -77,10 +95,10 @@ function Stick({
       elapsed.current += delta;
       node.rotation.x += delta * (4 + spinSeed);
       node.rotation.z += delta * (3 + spinSeed * 0.7);
-      const arc = Math.max(0, 0.85 - elapsed.current * 1.1);
-      const bounce = Math.abs(Math.sin(node.rotation.x * 1.7)) * 0.25;
-      node.position.y = SETTLE_HEIGHT + arc + bounce;
-      const lerpSpeed = Math.min(1, delta * 3);
+      const arc = Math.max(0, arcHeight - elapsed.current * fallRate);
+      const bounce = Math.abs(Math.sin(node.rotation.x * 1.7)) * bounceStrength;
+      node.position.y = settleHeight + arc + bounce;
+      const lerpSpeed = Math.min(1, delta * travelRate);
       node.position.x += (target[0] - node.position.x) * lerpSpeed;
       node.position.z += (target[1] - node.position.z) * lerpSpeed;
     } else {
@@ -96,7 +114,7 @@ function Stick({
       const settleSpeed = Math.min(1, delta * 8);
       node.rotation.x += (targetX - node.rotation.x) * settleSpeed;
       node.rotation.z += (0 - node.rotation.z) * settleSpeed;
-      node.position.y += (SETTLE_HEIGHT - node.position.y) * settleSpeed;
+      node.position.y += (settleHeight - node.position.y) * settleSpeed;
       node.position.x += (target[0] - node.position.x) * settleSpeed;
       node.position.z += (target[1] - node.position.z) * settleSpeed;
     }
@@ -121,22 +139,30 @@ function Stick({
  * Four stick meshes: a tight bundle lying flat before/during a throw, tossed with an arc and
  * settling scattered across the board once the result resolves. Every stick always lies flat —
  * the flat/round result is shown by which textured face (top vs. bottom) ends up facing up, like
- * a coin flip, rather than one standing upright. Three show a plain back when round-side-up; the
- * designated back-do stick shows a blue return-arrow mark on its back instead.
+ * a coin flip, rather than one standing upright. Per the reference rules image, the plain
+ * "blank" face is the one that counts toward distance (engine Face 'flat'); the carved "cross"
+ * (X-marked) face is the uncounted default (engine Face 'round'). All four share the same cross
+ * back; the designated back-do stick instead carries its blue return-arrow mark on its counted
+ * (blank) face, since Back-Do only triggers when that stick is the lone one counted (engine:
+ * flatCount===1 && sticks[0]==='flat') — marking the cross face would hide the cue exactly when
+ * it matters.
  */
-export function YutSticks3D({ faces, rolling, position = [0, 0, -0.4] }: YutSticks3DProps) {
+export function YutSticks3D({ faces, rolling, position = [0, 0, 0] }: YutSticks3DProps) {
   const [targets, setTargets] = useState<[number, number][]>(BUNDLE_TARGETS);
+  const [heights, setHeights] = useState<number[]>(BUNDLE_HEIGHTS);
   const wasRolling = useRef(false);
 
   useEffect(() => {
     if (rolling && !wasRolling.current) {
-      setTargets(randomScatterTargets(4));
+      const newTargets = randomScatterTargets(4);
+      setTargets(newTargets);
+      setHeights(computeStackedHeights(newTargets));
     }
     wasRolling.current = rolling;
   }, [rolling]);
 
-  const flatTexture = useMemo(() => createStickFlatFaceTexture(), []);
-  const roundTexture = useMemo(() => createStickRoundFaceTexture(), []);
+  const crossTexture = useMemo(() => createStickCrossMarkTexture(), []);
+  const blankTexture = useMemo(() => createStickBlankFaceTexture(), []);
   const backdoTexture = useMemo(() => createStickBackdoFaceTexture(), []);
 
   return (
@@ -147,8 +173,9 @@ export function YutSticks3D({ faces, rolling, position = [0, 0, -0.4] }: YutStic
           face={faces ? faces[i] : null}
           rolling={rolling}
           target={targets[i]}
-          topTexture={flatTexture}
-          bottomTexture={i === 0 ? backdoTexture : roundTexture}
+          settleHeight={heights[i]}
+          topTexture={i === 0 ? backdoTexture : blankTexture}
+          bottomTexture={crossTexture}
         />
       ))}
     </group>

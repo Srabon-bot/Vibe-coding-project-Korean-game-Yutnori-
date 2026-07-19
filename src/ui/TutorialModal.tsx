@@ -58,7 +58,6 @@ export function TutorialModal({ open, onClose }: TutorialModalProps) {
     { no: '02', title: t('tutorial.card2.title'), body: '' },
     { no: '03', title: t('tutorial.card3.title'), body: t('tutorial.card3.body') },
     { no: '04', title: t('tutorial.card4.title'), body: t('tutorial.card4.body') },
-    { no: '05', title: t('tutorial.card5.title'), body: t('tutorial.card5.body') },
   ];
 
   function handleClose() {
